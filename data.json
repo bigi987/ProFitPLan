@@ -1,0 +1,15 @@
+{
+  "Users": [
+    {
+      "Id": 1,
+      "Username": "admin",
+      "PasswordHash": "admin",
+      "Role": "Admin"
+    }
+  ],
+  "Meals": [],
+  "Workouts": [],
+  "NextUserId": 2,
+  "NextMealId": 1,
+  "NextWorkoutId": 1
+}

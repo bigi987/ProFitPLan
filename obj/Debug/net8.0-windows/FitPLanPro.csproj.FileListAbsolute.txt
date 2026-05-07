@@ -1,0 +1,15 @@
+C:\Users\Lenovo\FitPlanPro\bin\Debug\net8.0-windows\FitPLanPro.exe
+C:\Users\Lenovo\FitPlanPro\bin\Debug\net8.0-windows\FitPLanPro.deps.json
+C:\Users\Lenovo\FitPlanPro\bin\Debug\net8.0-windows\FitPLanPro.runtimeconfig.json
+C:\Users\Lenovo\FitPlanPro\bin\Debug\net8.0-windows\FitPLanPro.dll
+C:\Users\Lenovo\FitPlanPro\bin\Debug\net8.0-windows\FitPLanPro.pdb
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.AssemblyInfoInputs.cache
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.AssemblyInfo.cs
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.sourcelink.json
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.dll
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\refint\FitPLanPro.dll
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.pdb
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\FitPLanPro.genruntimeconfig.cache
+C:\Users\Lenovo\FitPlanPro\obj\Debug\net8.0-windows\ref\FitPLanPro.dll
