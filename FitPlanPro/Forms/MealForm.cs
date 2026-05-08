@@ -202,6 +202,7 @@ public class MealForm : Form
         dgvMeals.DataSource = null;
         dgvMeals.DataSource = DataService.Meals.ToList();
         if (dgvMeals.Columns.Contains("Id")) dgvMeals.Columns["Id"].Visible = false;
+        if (dgvMeals.Columns.Contains("UserId")) dgvMeals.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
     }
     
@@ -213,6 +214,7 @@ public class MealForm : Form
         dgvMeals.DataSource = null;
         dgvMeals.DataSource = filtered;
         if (dgvMeals.Columns.Contains("Id")) dgvMeals.Columns["Id"].Visible = false;
+        if (dgvMeals.Columns.Contains("UserId")) dgvMeals.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
     }
     
@@ -237,7 +239,6 @@ public class MealForm : Form
             {
                 var meal = new Meal
                 {
-                    Id = DataService.NextMealId,
                     Name = txtName.Text,
                     Calories = int.Parse(txtCalories.Text),
                     Protein = double.Parse(txtProtein.Text),

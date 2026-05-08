@@ -9,12 +9,16 @@ public static class AuthService
     
     public static bool Login(string username, string password)
     {
+        // Принудительно загружаем данные перед входом
+        DataService.LoadData();
+        
         var user = DataService.Users.FirstOrDefault(u => 
             u.Username == username && u.PasswordHash == password);
         
         if (user != null)
         {
             _currentUser = user;
+            DataService.RefreshUserData();
             return true;
         }
         return false;
@@ -27,14 +31,13 @@ public static class AuthService
         if (DataService.Users.Any(u => u.Username == username))
             return false;
         
-        DataService.Users.Add(new User
+        var newUser = new User
         {
-            Id = DataService.NextUserId,
             Username = username,
             PasswordHash = password,
             Role = role
-        });
-        DataService.SaveData();
+        };
+        DataService.AddUser(newUser);
         return true;
     }
 }

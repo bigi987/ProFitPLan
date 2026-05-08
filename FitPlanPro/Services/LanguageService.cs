@@ -1,10 +1,8 @@
-using System;
-
 namespace FitPlanPro.Services;
 
 public static class LanguageService
 {
-    private static string _currentLanguage = "ru"; // ru, en, ro
+    private static string _currentLanguage = "ru"; 
     
     public static string CurrentLanguage => _currentLanguage;
     
@@ -21,7 +19,6 @@ public static class LanguageService
     
     public static void ToggleLanguage()
     {
-        // Cycle through: ru -> en -> ro -> ru
         string next = _currentLanguage switch
         {
             "ru" => "en",
@@ -32,9 +29,6 @@ public static class LanguageService
         SetLanguage(next);
     }
     
-    /// <summary>
-    /// Returns the localized string for the current language.
-    /// </summary>
     public static string GetString(string ruText, string enText, string roText = "")
     {
         return _currentLanguage switch
@@ -46,9 +40,6 @@ public static class LanguageService
         };
     }
 
-    /// <summary>
-    /// Returns the label for the next language (for the toggle button).
-    /// </summary>
     public static string GetNextLanguageLabel()
     {
         return _currentLanguage switch

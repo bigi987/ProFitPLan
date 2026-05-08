@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using FitPlanPro.Models;
 using FitPlanPro.Services;
 
 namespace FitPlanPro.Controls;

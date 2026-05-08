@@ -32,9 +32,12 @@ public class WorkoutForm : Form
         SetupForm();
         LoadWorkouts();
         ThemeService.ApplyTheme(this);
-        lblTitle.ForeColor = ThemeService.PrimaryColor;
-        lblEditTitle.ForeColor = ThemeService.PrimaryColor;
+        lblTitle.ForeColor = ThemeService.IsDarkMode ? ThemeService.PrimaryColor : Color.FromArgb(40, 40, 40);
+        lblEditTitle.ForeColor = ThemeService.IsDarkMode ? ThemeService.PrimaryColor : Color.FromArgb(40, 40, 40);
         btnAdd.ForeColor = Color.Black;
+        
+        txtSearch.BackColor = Color.White;
+        txtSearch.BorderStyle = BorderStyle.FixedSingle;
         LanguageService.LanguageChanged += UpdateTexts;
         UpdateTexts();
     }
@@ -199,6 +202,7 @@ public class WorkoutForm : Form
         dgvWorkouts.DataSource = null;
         dgvWorkouts.DataSource = DataService.Workouts.ToList();
         if (dgvWorkouts.Columns.Contains("Id")) dgvWorkouts.Columns["Id"].Visible = false;
+        if (dgvWorkouts.Columns.Contains("UserId")) dgvWorkouts.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
     }
 
@@ -221,7 +225,6 @@ public class WorkoutForm : Form
             {
                 var workout = new Workout
                 {
-                    Id = DataService.NextWorkoutId,
                     Name = txtName.Text,
                     DurationMinutes = (int)numDuration.Value,
                     CaloriesBurned = (int)numCalories.Value,
@@ -268,6 +271,7 @@ public class WorkoutForm : Form
         dgvWorkouts.DataSource = null;
         dgvWorkouts.DataSource = filtered;
         if (dgvWorkouts.Columns.Contains("Id")) dgvWorkouts.Columns["Id"].Visible = false;
+        if (dgvWorkouts.Columns.Contains("UserId")) dgvWorkouts.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
     }
 

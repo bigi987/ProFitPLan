@@ -125,7 +125,7 @@ public class UserManagementForm : Form
                     LanguageService.GetString("Подтверждение", "Confirmation", "Confirmare"), MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     _selectedUser.Role = cboRole.SelectedItem?.ToString() ?? "User";
-                    DataService.SaveData();
+                    DataService.UpdateUser(_selectedUser);
                     LoadUsers();
                     MessageBox.Show(LanguageService.GetString("Роль обновлена!", "Role updated!", "Rol actualizat!"));
                 }
@@ -152,7 +152,7 @@ public class UserManagementForm : Form
                     LanguageService.GetString("Подтверждение", "Confirmation", "Confirmare"), MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     DataService.Users.Remove(_selectedUser);
-                    DataService.SaveData();
+                    DataService.DeleteUser(_selectedUser.Id);
                     LoadUsers();
                     _selectedUser = null;
                     MessageBox.Show(LanguageService.GetString("Пользователь удалён!", "User deleted!", "Utilizator șters!"));

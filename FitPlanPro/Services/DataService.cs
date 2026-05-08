@@ -1,89 +1,189 @@
 using FitPlanPro.Models;
-using System.Text.Json;
-using System.IO;
+using MySqlConnector;
+using Dapper;
+using System.Data;
+using System.Windows.Forms;
+
 
 namespace FitPlanPro.Services;
 
 public static class DataService
 {
-    private const string DataFilePath = "data.json";
+    private static readonly string ConnectionString = "Server=127.0.0.1;Port=3306;Database=fitplanpro_db;User ID=root;Password=Basarabeasca1029;";
 
     public static List<User> Users = new();
     public static List<Meal> Meals = new();
     public static List<Workout> Workouts = new();
-    private static int _nextUserId = 2;
-    private static int _nextMealId = 1;
-    private static int _nextWorkoutId = 1;
-    
-    public static int NextUserId => _nextUserId++;
-    public static int NextMealId => _nextMealId++;
-    public static int NextWorkoutId => _nextWorkoutId++;
 
-    private class AppData
+    public static void InitializeDatabase()
     {
-        public List<User> Users { get; set; } = new();
-        public List<Meal> Meals { get; set; } = new();
-        public List<Workout> Workouts { get; set; } = new();
-        public int NextUserId { get; set; } = 2;
-        public int NextMealId { get; set; } = 1;
-        public int NextWorkoutId { get; set; } = 1;
-    }
-
-    public static void SaveData()
-    {
-        var data = new AppData
+        try
         {
-            Users = Users,
-            Meals = Meals,
-            Workouts = Workouts,
-            NextUserId = _nextUserId,
-            NextMealId = _nextMealId,
-            NextWorkoutId = _nextWorkoutId
-        };
-        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(DataFilePath, json);
+            string baseConnString = "Server=127.0.0.1;Port=3306;User ID=root;Password=Basarabeasca1029;";
+            Console.WriteLine($"[DB] Попытка подключения к: {baseConnString.Replace("Basarabeasca1029", "********")}");
+            using (var conn = new MySqlConnection(baseConnString))
+            {
+                conn.Open();
+                conn.Execute("CREATE DATABASE IF NOT EXISTS fitplanpro_db;");
+            }
+
+            using var dbConn = new MySqlConnection(ConnectionString);
+            dbConn.Open();
+
+            string schema = @"
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    username VARCHAR(255) NOT NULL UNIQUE,
+                    password_hash TEXT NOT NULL,
+                    role VARCHAR(50) DEFAULT 'User'
+                );
+
+                CREATE TABLE IF NOT EXISTS meals (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT,
+                    name VARCHAR(255) NOT NULL,
+                    calories INT NOT NULL,
+                    protein DOUBLE DEFAULT 0,
+                    fat DOUBLE DEFAULT 0,
+                    carbs DOUBLE DEFAULT 0,
+                    date VARCHAR(50),
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS workouts (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT,
+                    name VARCHAR(255) NOT NULL,
+                    duration_minutes INT NOT NULL,
+                    calories_burned INT NOT NULL,
+                    date VARCHAR(50),
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+                INSERT INTO users (id, username, password_hash, role) 
+                VALUES (1, 'admin', 'admin', 'Admin')
+                ON DUPLICATE KEY UPDATE password_hash = 'admin';
+            ";
+            dbConn.Execute(schema);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка БД: {ex.Message}\n\nЕсли вы видите 'Access denied', значит у вашего MySQL ЕСТЬ пароль. Вспомните его и впишите в DataService.cs в поле Pwd=.", "Ошибка подключения", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     public static void LoadData()
     {
-        if (File.Exists(DataFilePath))
+        try
         {
-            var json = File.ReadAllText(DataFilePath);
-            try
+            using var conn = new MySqlConnection(ConnectionString);
+            Users = conn.Query<User>("SELECT * FROM users").ToList();
+            Console.WriteLine($"[DB] Загружено пользователей: {Users.Count}");
+            foreach(var u in Users) Console.WriteLine($" - Пользователь в базе: {u.Username}");
+            
+            if (AuthService.CurrentUser != null)
             {
-                var data = JsonSerializer.Deserialize<AppData>(json);
-                if (data != null)
-                {
-                    Users = data.Users ?? new List<User>();
-                    Meals = data.Meals ?? new List<Meal>();
-                    Workouts = data.Workouts ?? new List<Workout>();
-                    _nextUserId = data.NextUserId > 0 ? data.NextUserId : 2;
-                    _nextMealId = data.NextMealId > 0 ? data.NextMealId : 1;
-                    _nextWorkoutId = data.NextWorkoutId > 0 ? data.NextWorkoutId : 1;
-                }
-            }
-            catch
-            {
-                // Если файл поврежден, просто продолжаем с пустыми данными
+                RefreshUserData();
             }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
     }
-    
-    // Meal CRUD
-    public static void AddMeal(Meal meal) { Meals.Add(meal); SaveData(); }
+
+    public static void RefreshUserData()
+    {
+        if (AuthService.CurrentUser == null) return;
+        
+        try
+        {
+            using var conn = new MySqlConnection(ConnectionString);
+            int userId = AuthService.CurrentUser.Id;
+            
+            Meals = conn.Query<Meal>("SELECT * FROM meals WHERE user_id = @userId", new { userId }).ToList();
+            Workouts = conn.Query<Workout>("SELECT * FROM workouts WHERE user_id = @userId", new { userId }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error refreshing user data: {ex.Message}");
+        }
+    }
+
+    public static void AddUser(User user)
+    {
+        using var conn = new MySqlConnection(ConnectionString);
+        string sql = "INSERT INTO users (username, password_hash, role) VALUES (@Username, @PasswordHash, @Role); SELECT LAST_INSERT_ID();";
+        user.Id = conn.ExecuteScalar<int>(sql, user);
+        Users.Add(user);
+    }
+
+    public static void UpdateUser(User user)
+    {
+        using var conn = new MySqlConnection(ConnectionString);
+        string sql = "UPDATE users SET username=@Username, password_hash=@PasswordHash, role=@Role WHERE id=@Id";
+        conn.Execute(sql, user);
+        LoadData();
+    }
+
+    public static void DeleteUser(int id)
+    {
+        using var conn = new MySqlConnection(ConnectionString);
+        conn.Execute("DELETE FROM users WHERE id = @id", new { id });
+        LoadData();
+    }
+
+    public static void AddMeal(Meal meal)
+    {
+        if (AuthService.CurrentUser == null) return;
+        meal.UserId = AuthService.CurrentUser.Id;
+        
+        using var conn = new MySqlConnection(ConnectionString);
+        string sql = "INSERT INTO meals (user_id, name, calories, protein, fat, carbs, date) VALUES (@UserId, @Name, @Calories, @Protein, @Fat, @Carbs, @Date); SELECT LAST_INSERT_ID();";
+        meal.Id = conn.ExecuteScalar<int>(sql, meal);
+        Meals.Add(meal);
+    }
+
     public static void UpdateMeal(int id, Meal updated)
     {
-        var index = Meals.FindIndex(m => m.Id == id);
-        if (index != -1) { Meals[index] = updated; SaveData(); }
+        using var conn = new MySqlConnection(ConnectionString);
+        string sql = "UPDATE meals SET name=@Name, calories=@Calories, protein=@Protein, fat=@Fat, carbs=@Carbs, date=@Date WHERE id=@Id AND user_id=@UserId";
+        conn.Execute(sql, updated);
+        RefreshUserData();
     }
-    public static void DeleteMeal(int id) { Meals.RemoveAll(m => m.Id == id); SaveData(); }
-    
-    // Workout CRUD
-    public static void AddWorkout(Workout workout) { Workouts.Add(workout); SaveData(); }
+
+    public static void DeleteMeal(int id)
+    {
+        if (AuthService.CurrentUser == null) return;
+        using var conn = new MySqlConnection(ConnectionString);
+        conn.Execute("DELETE FROM meals WHERE id = @id AND user_id = @userId", new { id, userId = AuthService.CurrentUser.Id });
+        RefreshUserData();
+    }
+
+    public static void AddWorkout(Workout workout)
+    {
+        if (AuthService.CurrentUser == null) return;
+        workout.UserId = AuthService.CurrentUser.Id;
+        
+        using var conn = new MySqlConnection(ConnectionString);
+        string sql = "INSERT INTO workouts (user_id, name, duration_minutes, calories_burned, date) VALUES (@UserId, @Name, @DurationMinutes, @CaloriesBurned, @Date); SELECT LAST_INSERT_ID();";
+        workout.Id = conn.ExecuteScalar<int>(sql, workout);
+        Workouts.Add(workout);
+    }
+
     public static void UpdateWorkout(int id, Workout updated)
     {
-        var index = Workouts.FindIndex(w => w.Id == id);
-        if (index != -1) { Workouts[index] = updated; SaveData(); }
+        using var conn = new MySqlConnection(ConnectionString);
+        string sql = "UPDATE workouts SET name=@Name, duration_minutes=@DurationMinutes, calories_burned=@CaloriesBurned, date=@Date WHERE id=@Id AND user_id=@UserId";
+        conn.Execute(sql, updated);
+        RefreshUserData();
     }
-    public static void DeleteWorkout(int id) { Workouts.RemoveAll(w => w.Id == id); SaveData(); }
+
+    public static void DeleteWorkout(int id)
+    {
+        if (AuthService.CurrentUser == null) return;
+        using var conn = new MySqlConnection(ConnectionString);
+        conn.Execute("DELETE FROM workouts WHERE id = @id AND user_id = @userId", new { id, userId = AuthService.CurrentUser.Id });
+        RefreshUserData();
+    }
 }

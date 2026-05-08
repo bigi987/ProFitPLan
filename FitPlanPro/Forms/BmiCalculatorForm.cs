@@ -1,3 +1,4 @@
+using FitPlanPro.Models;
 using FitPlanPro.Services;
 using FitPlanPro.Controls;
 using System.Drawing.Drawing2D;
@@ -48,8 +49,8 @@ public class BmiCalculatorForm : Form
         this.Controls.Add(sidebar);
 
         // Center card
-        pnlCard.Size = new Size(450, 550);
-        pnlCard.Location = new Point((1100 - 450 + 100) / 2, (700 - 550) / 2);
+        pnlCard.Size = new Size(450, 580);
+        pnlCard.Location = new Point((1100 - 450 + 100) / 2, (700 - 580) / 2);
         pnlCard.BackColor = ThemeService.IsDarkMode ? Color.FromArgb(28, 28, 28) : Color.White;
         pnlCard.Paint += (s, e) => {
             var g = e.Graphics;
@@ -142,22 +143,22 @@ public class BmiCalculatorForm : Form
         };
 
         lblResult.Text = "";
-        lblResult.Font = new Font("Segoe UI", 28F, FontStyle.Bold);
-        lblResult.Location = new Point(0, 380);
-        lblResult.Size = new Size(pnlCard.Width, 40);
+        lblResult.Font = new Font("Segoe UI Black", 32F, FontStyle.Bold);
+        lblResult.Location = new Point(0, 385);
+        lblResult.Size = new Size(pnlCard.Width, 60);
         lblResult.TextAlign = ContentAlignment.MiddleCenter;
 
         lblCategory.Text = "";
-        lblCategory.Font = new Font("Segoe UI", 12F, FontStyle.Regular);
-        lblCategory.Location = new Point(0, 420);
-        lblCategory.Size = new Size(pnlCard.Width, 25);
+        lblCategory.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+        lblCategory.Location = new Point(0, 445);
+        lblCategory.Size = new Size(pnlCard.Width, 30);
         lblCategory.TextAlign = ContentAlignment.MiddleCenter;
 
-        pnlGauge.Location = new Point(inputX, 470);
+        pnlGauge.Location = new Point(inputX, 495);
         pnlGauge.Size = new Size(inputW, 30);
         pnlGauge.Paint += PnlGauge_Paint!;
 
-        pnlIndicator.Location = new Point(inputX, 502);
+        pnlIndicator.Location = new Point(inputX, 527);
         pnlIndicator.Size = new Size(inputW, 20);
         pnlIndicator.BackColor = Color.Transparent;
         pnlIndicator.Paint += PnlIndicator_Paint!;

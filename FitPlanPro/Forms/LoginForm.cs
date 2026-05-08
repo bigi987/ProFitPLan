@@ -1,3 +1,4 @@
+using FitPlanPro.Models;
 using FitPlanPro.Services;
 using FitPlanPro.Helpers;
 
