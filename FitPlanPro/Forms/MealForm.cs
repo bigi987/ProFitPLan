@@ -9,7 +9,6 @@ public class MealForm : Form
 {
     private SidebarControl sidebar = null!;
     private Label lblTitle = new();
-    private TextBox txtSearch = new();
     private DataGridView dgvMeals = new();
     
     // Right panel controls
@@ -66,11 +65,7 @@ public class MealForm : Form
         lblTitle.Location = new Point(contentX, 30);
         lblTitle.AutoSize = true;
 
-        txtSearch.Location = new Point(550, 35);
-        txtSearch.Size = new Size(200, 30);
-        txtSearch.Font = new Font("Segoe UI", 11F);
-        txtSearch.PlaceholderText = "🔍 Поиск по названию...";
-        txtSearch.TextChanged += TxtSearch_TextChanged!;
+        lblTitle.AutoSize = true;
 
         // DataGridView
         dgvMeals.Location = new Point(contentX, 90);
@@ -138,7 +133,6 @@ public class MealForm : Form
         pnlEdit.Controls.Add(btnDelete);
 
         this.Controls.Add(lblTitle);
-        this.Controls.Add(txtSearch);
         this.Controls.Add(dgvMeals);
         this.Controls.Add(pnlEdit);
     }
@@ -170,7 +164,6 @@ public class MealForm : Form
         btnAdd.Text = "+ " + LanguageService.GetString("Добавить", "Add", "Adăugare");
         btnUpdate.Text = "🔄 " + LanguageService.GetString("Обновить", "Update", "Actualizare");
         btnDelete.Text = "🗑 " + LanguageService.GetString("Удалить запись", "Delete Record", "Ștergere");
-        txtSearch.PlaceholderText = "🔍 " + LanguageService.GetString("Поиск по названию...", "Search by name...", "Căutare după nume...");
         
         lblNameLabel.Text = LanguageService.GetString("НАЗВАНИЕ", "NAME", "NUME");
         lblCaloriesLabel.Text = LanguageService.GetString("КАЛОРИИ (ККАЛ)", "CALORIES (KCAL)", "CALORII (KCAL)");
@@ -201,18 +194,6 @@ public class MealForm : Form
     {
         dgvMeals.DataSource = null;
         dgvMeals.DataSource = DataService.Meals.ToList();
-        if (dgvMeals.Columns.Contains("Id")) dgvMeals.Columns["Id"].Visible = false;
-        if (dgvMeals.Columns.Contains("UserId")) dgvMeals.Columns["UserId"].Visible = false;
-        UpdateGridHeaders();
-    }
-    
-    private void LoadFilteredMeals(string searchText)
-    {
-        var filtered = DataService.Meals
-            .Where(m => string.IsNullOrEmpty(searchText) || m.Name.ToLower().Contains(searchText.ToLower()))
-            .ToList();
-        dgvMeals.DataSource = null;
-        dgvMeals.DataSource = filtered;
         if (dgvMeals.Columns.Contains("Id")) dgvMeals.Columns["Id"].Visible = false;
         if (dgvMeals.Columns.Contains("UserId")) dgvMeals.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
@@ -289,11 +270,6 @@ public class MealForm : Form
                 ClearInputs();
             }
         }
-    }
-    
-    private void TxtSearch_TextChanged(object sender, EventArgs e)
-    {
-        LoadFilteredMeals(txtSearch.Text);
     }
     
     private bool ValidateInput()

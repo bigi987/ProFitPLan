@@ -1,0 +1,39 @@
+# Build outputs
+bin/
+obj/
+
+# User-specific / IDE files
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# MSBuild / NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Cursor / VS Code
+.vscode/
+
+# Local caches
+*.lscache
+
+# Local databases (keep if you actually want them versioned)
+*.db
+

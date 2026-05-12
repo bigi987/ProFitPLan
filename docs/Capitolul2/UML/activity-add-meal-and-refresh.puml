@@ -1,0 +1,28 @@
+@startuml
+title FitPlan Pro - Activity: Adăugare masă + actualizare Dashboard
+skinparam shadowing false
+
+start
+:Utilizator deschide Dashboard;
+:Apasă "Meal Management";
+:Se deschide MealForm;
+
+repeat
+  :Introduce nume/calorii/macronutrienți;
+  if (Date valide?\n(ValidateInput)) then (da)
+    :Creează obiect Meal\n(DateTime.Now);
+    :DataService.AddMeal(meal);
+    :Persistare în DB\n(INSERT meals user_id,...);
+    :Reload grid\n(LoadMeals);
+    :Curăță inputurile;
+  else (nu)
+    :Afișează mesaj\n"Introduceți valori numerice";
+  endif
+repeat while (Mai adaugă o masă?) is (da)
+
+:Închide MealForm;
+:Dashboard RefreshStats();
+:Recalculează total consumat/ars/balanță\nși progres calorii;
+stop
+
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+title FitPlan Pro - Sequence: Login -> Dashboard + încărcare date utilizator
+hide footbox
+
+actor Utilizator as U
+boundary LoginForm as LF
+control AuthService as AS
+control DataService as DS
+database "MySQL (fitplanpro_db)" as DB
+boundary DashboardForm as DF
+
+U -> LF : introduce username/parolă\nclick Login
+LF -> AS : Login(username, password)
+AS -> DS : LoadData()
+DS -> DB : SELECT * FROM users
+DB --> DS : lista users
+DS --> AS : Users încărcați
+AS -> AS : găsește user în DataService.Users
+
+alt autentificare reușită
+  AS -> DS : RefreshUserData()
+  DS -> DB : SELECT * FROM meals\nWHERE user_id = CurrentUser.Id
+  DB --> DS : meals[]
+  DS -> DB : SELECT * FROM workouts\nWHERE user_id = CurrentUser.Id
+  DB --> DS : workouts[]
+  DS --> AS : Meals/Workouts încărcate
+  AS --> LF : true
+  LF -> DF : new DashboardForm().Show()
+  LF -> LF : Hide()
+  DF -> DS : (la activare) citește Meals/Workouts
+  DF -> DF : RefreshStats()\n(consumed/burned/balance/progress)
+else autentificare eșuată
+  AS --> LF : false
+  LF -> LF : MessageBox "Invalid..."
+end
+
+@enduml

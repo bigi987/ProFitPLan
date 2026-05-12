@@ -43,6 +43,16 @@
       "frameworks": {
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.28, )"
+            },
+            "MySqlConnector": {
+              "target": "Package",
+              "version": "[2.3.7, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

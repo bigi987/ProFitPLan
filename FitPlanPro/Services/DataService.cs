@@ -17,6 +17,7 @@ public static class DataService
 
     public static void InitializeDatabase()
     {
+        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
         try
         {
             string baseConnString = "Server=127.0.0.1;Port=3306;User ID=root;Password=Basarabeasca1029;";
@@ -79,7 +80,7 @@ public static class DataService
             using var conn = new MySqlConnection(ConnectionString);
             Users = conn.Query<User>("SELECT * FROM users").ToList();
             Console.WriteLine($"[DB] Загружено пользователей: {Users.Count}");
-            foreach(var u in Users) Console.WriteLine($" - Пользователь в базе: {u.Username}");
+            foreach(var u in Users) Console.WriteLine($" - Пользователь: {u.Username}, Пароль (длина): {u.PasswordHash?.Length}, Роль: {u.Role}");
             
             if (AuthService.CurrentUser != null)
             {

@@ -1,0 +1,108 @@
+@startuml
+title FitPlan Pro - Class Diagram (structural)
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Models" {
+  class User {
+    +int Id
+    +string Username
+    +string PasswordHash
+    +string Role
+  }
+
+  class Meal {
+    +int Id
+    +int UserId
+    +string Name
+    +int Calories
+    +double Protein
+    +double Fat
+    +double Carbs
+    +DateTime Date
+  }
+
+  class Workout {
+    +int Id
+    +int UserId
+    +string Name
+    +int DurationMinutes
+    +int CaloriesBurned
+    +DateTime Date
+  }
+}
+
+package "Services" {
+  class AuthService <<static>> {
+    -User? _currentUser
+    +User? CurrentUser
+    +bool Login(username, password)
+    +void Logout()
+    +bool Register(username, password, role="User")
+  }
+
+  class DataService <<static>> {
+    -string ConnectionString
+    +List<User> Users
+    +List<Meal> Meals
+    +List<Workout> Workouts
+    +void InitializeDatabase()
+    +void LoadData()
+    +void RefreshUserData()
+    +void AddUser(User)
+    +void UpdateUser(User)
+    +void DeleteUser(int)
+    +void AddMeal(Meal)
+    +void UpdateMeal(int, Meal)
+    +void DeleteMeal(int)
+    +void AddWorkout(Workout)
+    +void UpdateWorkout(int, Workout)
+    +void DeleteWorkout(int)
+  }
+
+  class ExportService <<static>> {
+    +void ExportToCsv<T>(List<T>, filePath)
+  }
+
+  class ThemeService <<static>>
+  class LanguageService <<static>>
+}
+
+package "Forms (WinForms UI)" {
+  class LoginForm
+  class RegisterForm
+  class DashboardForm
+  class MealForm
+  class WorkoutForm
+  class UserManagementForm
+  class BmiCalculatorForm
+  class WorkoutTimerForm
+}
+
+' Relationships
+AuthService --> DataService : uses
+DataService o-- User : holds list
+DataService o-- Meal : holds list
+DataService o-- Workout : holds list
+Meal --> User : user_id
+Workout --> User : user_id
+
+LoginForm --> AuthService : login/register
+LoginForm --> DashboardForm : opens
+DashboardForm --> MealForm : opens
+DashboardForm --> WorkoutForm : opens
+DashboardForm --> UserManagementForm : opens (Admin)
+DashboardForm --> ExportService : export CSV
+DashboardForm --> ThemeService : toggle/apply
+DashboardForm --> LanguageService : toggle/strings
+MealForm --> DataService : CRUD meals
+WorkoutForm --> DataService : CRUD workouts
+UserManagementForm --> DataService : update/delete users
+UserManagementForm --> AuthService : checks current user
+
+note right of DataService
+  Persistență: MySQL + Dapper
+  (tabele: users, meals, workouts)
+end note
+
+@enduml

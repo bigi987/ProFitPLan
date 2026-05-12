@@ -9,7 +9,6 @@ public class WorkoutForm : Form
 {
     private SidebarControl sidebar = null!;
     private Label lblTitle = new();
-    private TextBox txtSearch = new();
     private DataGridView dgvWorkouts = new();
     
     private Panel pnlEdit = new();
@@ -32,12 +31,8 @@ public class WorkoutForm : Form
         SetupForm();
         LoadWorkouts();
         ThemeService.ApplyTheme(this);
-        lblTitle.ForeColor = ThemeService.IsDarkMode ? ThemeService.PrimaryColor : Color.FromArgb(40, 40, 40);
-        lblEditTitle.ForeColor = ThemeService.IsDarkMode ? ThemeService.PrimaryColor : Color.FromArgb(40, 40, 40);
         btnAdd.ForeColor = Color.Black;
         
-        txtSearch.BackColor = Color.White;
-        txtSearch.BorderStyle = BorderStyle.FixedSingle;
         LanguageService.LanguageChanged += UpdateTexts;
         UpdateTexts();
     }
@@ -59,10 +54,7 @@ public class WorkoutForm : Form
         lblTitle.Location = new Point(contentX, 30);
         lblTitle.AutoSize = true;
 
-        txtSearch.Location = new Point(550, 35);
-        txtSearch.Size = new Size(200, 30);
-        txtSearch.Font = new Font("Segoe UI", 11F);
-        txtSearch.TextChanged += TxtSearch_TextChanged!;
+        lblTitle.AutoSize = true;
 
         dgvWorkouts.Location = new Point(contentX, 90);
         dgvWorkouts.Size = new Size(610, 530);
@@ -146,7 +138,6 @@ public class WorkoutForm : Form
         pnlEdit.Controls.Add(btnDelete);
 
         this.Controls.Add(lblTitle);
-        this.Controls.Add(txtSearch);
         this.Controls.Add(dgvWorkouts);
         this.Controls.Add(pnlEdit);
     }
@@ -176,7 +167,6 @@ public class WorkoutForm : Form
         btnAdd.Text = "+ " + LanguageService.GetString("Добавить", "Add", "Adăugare");
         btnUpdate.Text = "🔄 " + LanguageService.GetString("Обновить", "Update", "Actualizare");
         btnDelete.Text = "🗑 " + LanguageService.GetString("Удалить запись", "Delete Record", "Ștergere");
-        txtSearch.PlaceholderText = "🔍 " + LanguageService.GetString("Поиск...", "Search...", "Căutare...");
         
         lblNameLabel.Text = LanguageService.GetString("НАЗВАНИЕ", "NAME", "NUME");
         lblDurationLabel.Text = LanguageService.GetString("ДЛИТЕЛЬНОСТЬ (МИН)", "DURATION (MIN)", "DURATĂ (MIN)");
@@ -261,18 +251,6 @@ public class WorkoutForm : Form
             LoadWorkouts();
             ClearInputs();
         }
-    }
-
-    private void TxtSearch_TextChanged(object sender, EventArgs e)
-    {
-        var filtered = DataService.Workouts
-            .Where(w => w.Name.ToLower().Contains(txtSearch.Text.ToLower()))
-            .ToList();
-        dgvWorkouts.DataSource = null;
-        dgvWorkouts.DataSource = filtered;
-        if (dgvWorkouts.Columns.Contains("Id")) dgvWorkouts.Columns["Id"].Visible = false;
-        if (dgvWorkouts.Columns.Contains("UserId")) dgvWorkouts.Columns["UserId"].Visible = false;
-        UpdateGridHeaders();
     }
 
     private void ClearInputs()
