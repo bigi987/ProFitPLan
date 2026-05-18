@@ -9,7 +9,7 @@ namespace FitPlanPro.Services;
 
 public static class DataService
 {
-    private static readonly string ConnectionString = "Server=127.0.0.1;Port=3306;Database=fitplanpro_db;User ID=root;Password=Basarabeasca1029;";
+    private static readonly string ConnectionString = "Server=127.0.0.1;Port=3306;Database=fitplanpro_db;User ID=root;Password=Basarabeasca1029;Allow User Variables=true;";
 
     public static List<User> Users = new();
     public static List<Meal> Meals = new();
@@ -20,7 +20,7 @@ public static class DataService
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
         try
         {
-            string baseConnString = "Server=127.0.0.1;Port=3306;User ID=root;Password=Basarabeasca1029;";
+            string baseConnString = "Server=127.0.0.1;Port=3306;User ID=root;Password=Basarabeasca1029;Allow User Variables=true;";
             Console.WriteLine($"[DB] Попытка подключения к: {baseConnString.Replace("Basarabeasca1029", "********")}");
             using (var conn = new MySqlConnection(baseConnString))
             {
@@ -36,8 +36,25 @@ public static class DataService
                     id INT PRIMARY KEY AUTO_INCREMENT,
                     username VARCHAR(255) NOT NULL UNIQUE,
                     password_hash TEXT NOT NULL,
-                    role VARCHAR(50) DEFAULT 'User'
+                    role VARCHAR(50) DEFAULT 'User',
+                    target_calories INT DEFAULT 2000
                 );
+                
+                -- Migration for existing tables
+                SET @dbname = DATABASE();
+                SET @tablename = 'users';
+                SET @columnname = 'target_calories';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE TABLE_SCHEMA = @dbname
+                   AND TABLE_NAME = @tablename
+                   AND COLUMN_NAME = @columnname) > 0,
+                  'SELECT 1',
+                  CONCAT('ALTER TABLE ', @tablename, ' ADD ', @columnname, ' INT DEFAULT 2000;')
+                ));
+                PREPARE stmt FROM @preparedStatement;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
 
                 CREATE TABLE IF NOT EXISTS meals (
                     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -47,7 +64,7 @@ public static class DataService
                     protein DOUBLE DEFAULT 0,
                     fat DOUBLE DEFAULT 0,
                     carbs DOUBLE DEFAULT 0,
-                    date VARCHAR(50),
+                    `date` DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
 
@@ -57,12 +74,12 @@ public static class DataService
                     name VARCHAR(255) NOT NULL,
                     duration_minutes INT NOT NULL,
                     calories_burned INT NOT NULL,
-                    date VARCHAR(50),
+                    `date` DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
 
-                INSERT INTO users (id, username, password_hash, role) 
-                VALUES (1, 'admin', 'admin', 'Admin')
+                INSERT INTO users (id, username, password_hash, role, target_calories) 
+                VALUES (1, 'admin', 'admin', 'Admin', 2000)
                 ON DUPLICATE KEY UPDATE password_hash = 'admin';
             ";
             dbConn.Execute(schema);
@@ -80,7 +97,7 @@ public static class DataService
             using var conn = new MySqlConnection(ConnectionString);
             Users = conn.Query<User>("SELECT * FROM users").ToList();
             Console.WriteLine($"[DB] Загружено пользователей: {Users.Count}");
-            foreach(var u in Users) Console.WriteLine($" - Пользователь: {u.Username}, Пароль (длина): {u.PasswordHash?.Length}, Роль: {u.Role}");
+            foreach(var u in Users) Console.WriteLine($" - Пользователь: {u.Username}, Роль: {u.Role}, Цель: {u.TargetCalories}");
             
             if (AuthService.CurrentUser != null)
             {
@@ -104,6 +121,13 @@ public static class DataService
             
             Meals = conn.Query<Meal>("SELECT * FROM meals WHERE user_id = @userId", new { userId }).ToList();
             Workouts = conn.Query<Workout>("SELECT * FROM workouts WHERE user_id = @userId", new { userId }).ToList();
+            
+            // Sync CurrentUser with DB (in case target_calories changed)
+            var dbUser = conn.QueryFirstOrDefault<User>("SELECT * FROM users WHERE id = @userId", new { userId });
+            if (dbUser != null)
+            {
+                AuthService.CurrentUser.TargetCalories = dbUser.TargetCalories;
+            }
         }
         catch (Exception ex)
         {
@@ -114,7 +138,7 @@ public static class DataService
     public static void AddUser(User user)
     {
         using var conn = new MySqlConnection(ConnectionString);
-        string sql = "INSERT INTO users (username, password_hash, role) VALUES (@Username, @PasswordHash, @Role); SELECT LAST_INSERT_ID();";
+        string sql = "INSERT INTO users (username, password_hash, role, target_calories) VALUES (@Username, @PasswordHash, @Role, @TargetCalories); SELECT LAST_INSERT_ID();";
         user.Id = conn.ExecuteScalar<int>(sql, user);
         Users.Add(user);
     }
@@ -122,7 +146,7 @@ public static class DataService
     public static void UpdateUser(User user)
     {
         using var conn = new MySqlConnection(ConnectionString);
-        string sql = "UPDATE users SET username=@Username, password_hash=@PasswordHash, role=@Role WHERE id=@Id";
+        string sql = "UPDATE users SET username=@Username, password_hash=@PasswordHash, role=@Role, target_calories=@TargetCalories WHERE id=@Id";
         conn.Execute(sql, user);
         LoadData();
     }
@@ -147,10 +171,39 @@ public static class DataService
 
     public static void UpdateMeal(int id, Meal updated)
     {
-        using var conn = new MySqlConnection(ConnectionString);
-        string sql = "UPDATE meals SET name=@Name, calories=@Calories, protein=@Protein, fat=@Fat, carbs=@Carbs, date=@Date WHERE id=@Id AND user_id=@UserId";
-        conn.Execute(sql, updated);
-        RefreshUserData();
+        try 
+        {
+            if (AuthService.CurrentUser == null) {
+                MessageBox.Show("Ошибка: Пользователь не авторизован!");
+                return;
+            }
+            
+            using var conn = new MySqlConnection(ConnectionString);
+            string sql = @"UPDATE meals 
+                           SET name=@Name, calories=@Calories, protein=@Protein, fat=@Fat, carbs=@Carbs, `date`=@Date 
+                           WHERE id=@Id";
+            
+            var parameters = new {
+                updated.Name,
+                updated.Calories,
+                updated.Protein,
+                updated.Fat,
+                updated.Carbs,
+                Date = updated.Date,
+                Id = id
+            };
+
+            int rows = conn.Execute(sql, parameters);
+            if (rows == 0) {
+                MessageBox.Show($"Предупреждение: Запись с ID {id} не найдена в базе данных MySQL! Изменения не сохранены.");
+            } else {
+                Console.WriteLine($"[DB] Успешно обновлено: {rows} строк.");
+            }
+            RefreshUserData();
+        }
+        catch (Exception ex) {
+            MessageBox.Show("Ошибка MySQL при обновлении: " + ex.Message);
+        }
     }
 
     public static void DeleteMeal(int id)
@@ -174,10 +227,32 @@ public static class DataService
 
     public static void UpdateWorkout(int id, Workout updated)
     {
-        using var conn = new MySqlConnection(ConnectionString);
-        string sql = "UPDATE workouts SET name=@Name, duration_minutes=@DurationMinutes, calories_burned=@CaloriesBurned, date=@Date WHERE id=@Id AND user_id=@UserId";
-        conn.Execute(sql, updated);
-        RefreshUserData();
+        try 
+        {
+            if (AuthService.CurrentUser == null) return;
+            
+            using var conn = new MySqlConnection(ConnectionString);
+            string sql = @"UPDATE workouts 
+                           SET name=@Name, duration_minutes=@DurationMinutes, calories_burned=@CaloriesBurned, `date`=@Date 
+                           WHERE id=@Id";
+
+            var parameters = new {
+                updated.Name,
+                updated.DurationMinutes,
+                updated.CaloriesBurned,
+                Date = updated.Date,
+                Id = id
+            };
+
+            int rows = conn.Execute(sql, parameters);
+            if (rows == 0) {
+                MessageBox.Show($"Предупреждение: Тренировка с ID {id} не найдена в базе!");
+            }
+            RefreshUserData();
+        }
+        catch (Exception ex) {
+            MessageBox.Show("Ошибка MySQL при обновлении тренировки: " + ex.Message);
+        }
     }
 
     public static void DeleteWorkout(int id)

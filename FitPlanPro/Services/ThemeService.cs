@@ -7,13 +7,17 @@ public static class ThemeService
     
     public static Color PrimaryColor = Color.FromArgb(120, 180, 0); 
     
-    private static Color LightBg = Color.FromArgb(240, 240, 240);
+    private static Color LightBg = Color.FromArgb(242, 245, 249);
     private static Color LightControlBg = Color.White;
     private static Color LightText = Color.FromArgb(20, 20, 20);
     
     private static Color DarkBg = Color.FromArgb(18, 18, 18);
     private static Color DarkControlBg = Color.FromArgb(28, 28, 28);
     private static Color DarkText = Color.White;
+
+    public static Color SurfaceColor => _isDarkMode ? Color.FromArgb(32, 32, 32) : Color.White;
+    public static Color BorderColor => _isDarkMode ? Color.FromArgb(45, 45, 45) : Color.FromArgb(230, 230, 230);
+    public static Color SecondaryText => _isDarkMode ? Color.FromArgb(160, 160, 160) : Color.FromArgb(100, 100, 100);
 
     public static void ToggleTheme(Form form)
     {
@@ -57,13 +61,13 @@ public static class ThemeService
             {
                 dgv.BackgroundColor = backColor;
                 dgv.ForeColor = foreColor;
-                dgv.GridColor = _isDarkMode ? Color.FromArgb(40, 40, 40) : Color.LightGray;
+                dgv.GridColor = BorderColor;
                 dgv.DefaultCellStyle.BackColor = backColor;
                 dgv.DefaultCellStyle.ForeColor = foreColor;
                 dgv.DefaultCellStyle.SelectionBackColor = PrimaryColor;
                 dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = controlBg;
-                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(100, 100, 100);
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = SecondaryText;
                 dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
                 dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
                 dgv.RowHeadersVisible = false;

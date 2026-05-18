@@ -29,9 +29,8 @@ public class BmiCalculatorForm : Form
     {
         SetupForm();
         ThemeService.ApplyTheme(this);
-        pnlGauge.BackColor = Color.Transparent;
-        lblTitle.ForeColor = ThemeService.PrimaryColor;
-        btnCalculate.ForeColor = Color.Black;
+        this.BackColor = Color.White; // Force whole form white
+        
         LanguageService.LanguageChanged += UpdateTexts;
         UpdateTexts();
         this.FormClosing += (s, e) => LanguageService.LanguageChanged -= UpdateTexts;
@@ -49,117 +48,110 @@ public class BmiCalculatorForm : Form
         this.Controls.Add(sidebar);
 
         // Center card
-        pnlCard.Size = new Size(450, 580);
-        pnlCard.Location = new Point((1100 - 450 + 100) / 2, (700 - 580) / 2);
-        pnlCard.BackColor = ThemeService.IsDarkMode ? Color.FromArgb(28, 28, 28) : Color.White;
+        pnlCard.Size = new Size(500, 600);
+        pnlCard.Location = new Point((1100 - 500 + 100) / 2, (700 - 600) / 2);
+        pnlCard.BackColor = Color.Transparent;
         pnlCard.Paint += (s, e) => {
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             var rect = new Rectangle(0, 0, pnlCard.Width - 1, pnlCard.Height - 1);
-            using var path = new GraphicsPath();
-            int radius = 16;
-            int d = radius * 2;
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
             
-            Color parentBg = ThemeService.IsDarkMode ? Color.FromArgb(18, 18, 18) : Color.FromArgb(244, 247, 246);
-            g.Clear(parentBg);
-            
-            using var brush = new SolidBrush(ThemeService.IsDarkMode ? Color.FromArgb(28, 28, 28) : Color.White);
+            // Subtle shadow
+            using (var shadowPath = GetRoundedRectPath(new Rectangle(4, 4, rect.Width, rect.Height), 24))
+            {
+                using var shadowBrush = new SolidBrush(Color.FromArgb(20, 0, 0, 0));
+                g.FillPath(shadowBrush, shadowPath);
+            }
+
+            using var path = GetRoundedRectPath(rect, 24);
+            using var brush = new SolidBrush(ThemeService.SurfaceColor);
             g.FillPath(brush, path);
-            using var pen = new Pen(ThemeService.IsDarkMode ? Color.FromArgb(40, 40, 40) : Color.FromArgb(220, 220, 220));
+            using var pen = new Pen(ThemeService.BorderColor, 1);
             g.DrawPath(pen, path);
         };
 
-        lblTitle.Font = new Font("Segoe UI Black", 20F, FontStyle.Bold);
-        lblTitle.ForeColor = ThemeService.PrimaryColor;
+        lblTitle.Font = new Font("Segoe UI Black", 24F, FontStyle.Bold);
         lblTitle.TextAlign = ContentAlignment.MiddleCenter;
-        lblTitle.Location = new Point(0, 30);
-        lblTitle.Size = new Size(pnlCard.Width, 80);
+        lblTitle.Location = new Point(0, 35);
+        lblTitle.Size = new Size(pnlCard.Width, 90);
+        lblTitle.BackColor = Color.Transparent;
 
-        lblSubtitle.Font = new Font("Segoe UI", 10F);
-        lblSubtitle.ForeColor = Color.Gray;
+        lblSubtitle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+        lblSubtitle.ForeColor = ThemeService.SecondaryText;
         lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
-        lblSubtitle.Location = new Point(0, 110);
-        lblSubtitle.Size = new Size(pnlCard.Width, 20);
+        lblSubtitle.Location = new Point(0, 125);
+        lblSubtitle.Size = new Size(pnlCard.Width, 25);
+        lblSubtitle.BackColor = Color.Transparent;
 
-        int inputX = 40;
-        int inputW = pnlCard.Width - 80;
+        int inputX = 60;
+        int inputW = pnlCard.Width - 120;
 
         lblWeightLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        lblWeightLabel.ForeColor = Color.Gray;
-        lblWeightLabel.Location = new Point(inputX, 150);
+        lblWeightLabel.ForeColor = ThemeService.SecondaryText;
+        lblWeightLabel.Location = new Point(inputX, 170);
         lblWeightLabel.AutoSize = true;
+        lblWeightLabel.BackColor = Color.Transparent;
 
-        txtWeight.Location = new Point(inputX, 175);
-        txtWeight.Size = new Size(inputW, 35);
-        txtWeight.Font = new Font("Segoe UI", 14F);
-        txtWeight.BackColor = Color.FromArgb(40, 40, 40);
-        txtWeight.ForeColor = Color.White;
+        txtWeight.Location = new Point(inputX, 195);
+        txtWeight.Size = new Size(inputW, 40);
+        txtWeight.Font = new Font("Segoe UI", 16F);
         txtWeight.BorderStyle = BorderStyle.FixedSingle;
 
         lblHeightLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        lblHeightLabel.ForeColor = Color.Gray;
-        lblHeightLabel.Location = new Point(inputX, 230);
+        lblHeightLabel.ForeColor = ThemeService.SecondaryText;
+        lblHeightLabel.Location = new Point(inputX, 255);
         lblHeightLabel.AutoSize = true;
+        lblHeightLabel.BackColor = Color.Transparent;
 
-        txtHeight.Location = new Point(inputX, 255);
-        txtHeight.Size = new Size(inputW, 35);
-        txtHeight.Font = new Font("Segoe UI", 14F);
-        txtHeight.BackColor = Color.FromArgb(40, 40, 40);
-        txtHeight.ForeColor = Color.White;
+        txtHeight.Location = new Point(inputX, 280);
+        txtHeight.Size = new Size(inputW, 40);
+        txtHeight.Font = new Font("Segoe UI", 16F);
         txtHeight.BorderStyle = BorderStyle.FixedSingle;
 
-        btnCalculate.Location = new Point(inputX, 320);
-        btnCalculate.Size = new Size(inputW, 55);
+        btnCalculate.Location = new Point(inputX, 350);
+        btnCalculate.Size = new Size(inputW, 60);
         btnCalculate.BackColor = ThemeService.PrimaryColor;
         btnCalculate.ForeColor = Color.Black;
         btnCalculate.FlatStyle = FlatStyle.Flat;
         btnCalculate.FlatAppearance.BorderSize = 0;
-        btnCalculate.Font = new Font("Segoe UI Black", 12F, FontStyle.Bold);
+        btnCalculate.Font = new Font("Segoe UI Black", 14F, FontStyle.Bold);
+        btnCalculate.Cursor = Cursors.Hand;
         btnCalculate.Click += BtnCalculate_Click!;
         btnCalculate.Paint += (s, e) => {
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             var rect = new Rectangle(0, 0, btnCalculate.Width, btnCalculate.Height);
-            using var path = new GraphicsPath();
-            int radius = 12;
-            int d = radius * 2;
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            g.Clear(pnlCard.BackColor);
+            using var path = GetRoundedRectPath(rect, 15);
+            g.Clear(ThemeService.SurfaceColor);
             using var brush = new SolidBrush(btnCalculate.BackColor);
             g.FillPath(brush, path);
-            using var font = new Font("Segoe UI Black", 12F, FontStyle.Bold);
-            using var textBrush = new SolidBrush(btnCalculate.ForeColor);
+            
+            // Text with better positioning
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            g.DrawString(btnCalculate.Text, font, textBrush, rect, sf);
+            using var textBrush = new SolidBrush(btnCalculate.ForeColor);
+            g.DrawString(btnCalculate.Text, btnCalculate.Font, textBrush, rect, sf);
         };
 
         lblResult.Text = "";
-        lblResult.Font = new Font("Segoe UI Black", 32F, FontStyle.Bold);
-        lblResult.Location = new Point(0, 385);
-        lblResult.Size = new Size(pnlCard.Width, 60);
+        lblResult.Font = new Font("Segoe UI Black", 42F, FontStyle.Bold);
+        lblResult.Location = new Point(0, 420);
+        lblResult.Size = new Size(pnlCard.Width, 75);
         lblResult.TextAlign = ContentAlignment.MiddleCenter;
+        lblResult.BackColor = Color.Transparent;
 
         lblCategory.Text = "";
-        lblCategory.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-        lblCategory.Location = new Point(0, 445);
-        lblCategory.Size = new Size(pnlCard.Width, 30);
+        lblCategory.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+        lblCategory.Location = new Point(0, 495);
+        lblCategory.Size = new Size(pnlCard.Width, 35);
         lblCategory.TextAlign = ContentAlignment.MiddleCenter;
+        lblCategory.BackColor = Color.Transparent;
 
-        pnlGauge.Location = new Point(inputX, 495);
-        pnlGauge.Size = new Size(inputW, 30);
+        pnlGauge.Location = new Point(inputX, 545);
+        pnlGauge.Size = new Size(inputW, 12);
         pnlGauge.Paint += PnlGauge_Paint!;
 
-        pnlIndicator.Location = new Point(inputX, 527);
-        pnlIndicator.Size = new Size(inputW, 20);
+        pnlIndicator.Location = new Point(inputX, 560);
+        pnlIndicator.Size = new Size(inputW, 15);
         pnlIndicator.BackColor = Color.Transparent;
         pnlIndicator.Paint += PnlIndicator_Paint!;
 
@@ -178,16 +170,30 @@ public class BmiCalculatorForm : Form
         this.Controls.Add(pnlCard);
     }
 
+    private GraphicsPath GetRoundedRectPath(Rectangle rect, int radius)
+    {
+        var path = new GraphicsPath();
+        int d = radius * 2;
+        path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+        path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+        path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+        path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+        path.CloseFigure();
+        return path;
+    }
+
     private void UpdateTexts()
     {
         this.Text = LanguageService.GetString("Калькулятор ИМТ", "BMI Calculator", "Calculator IMC");
-        lblTitle.Text = "⚖️\n" + LanguageService.GetString("КАЛЬКУЛЯТОР ИМТ", "BMI CALCULATOR", "CALCULATOR IMC");
-        lblSubtitle.Text = LanguageService.GetString("Индекс массы тела", "Body Mass Index", "Indicele de masă corporală");
+        lblTitle.Text = LanguageService.GetString("⚖️ КАЛЬКУЛЯТОР ИМТ", "⚖️ BMI CALCULATOR", "⚖️ CALCULATOR IMC");
+        lblTitle.ForeColor = ThemeService.PrimaryColor;
+        lblSubtitle.Text = LanguageService.GetString("ИНДЕКС МАССЫ ТЕЛА", "BODY MASS INDEX", "INDICE DE MASĂ CORPORALĂ");
         lblWeightLabel.Text = LanguageService.GetString("ВЕС (КГ)", "WEIGHT (KG)", "GREUTATE (KG)");
         txtWeight.PlaceholderText = LanguageService.GetString("Введите ваш вес", "Enter your weight", "Introduceți greutatea");
         lblHeightLabel.Text = LanguageService.GetString("РОСТ (СМ)", "HEIGHT (CM)", "ÎNĂLȚIME (CM)");
         txtHeight.PlaceholderText = LanguageService.GetString("Введите ваш рост", "Enter your height", "Introduceți înălțimea");
         btnCalculate.Text = LanguageService.GetString("РАССЧИТАТЬ", "CALCULATE", "CALCULARE");
+        
         if (_currentBmi > 0)
         {
             lblCategory.Text = GetBmiCategory(_currentBmi);
@@ -198,8 +204,11 @@ public class BmiCalculatorForm : Form
 
     private void BtnCalculate_Click(object sender, EventArgs e)
     {
-        if (double.TryParse(txtWeight.Text.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double weight) &&
-            double.TryParse(txtHeight.Text.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double height))
+        string wText = txtWeight.Text.Replace(',', '.');
+        string hText = txtHeight.Text.Replace(',', '.');
+
+        if (double.TryParse(wText, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double weight) &&
+            double.TryParse(hText, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double height))
         {
             if (weight <= 0 || height <= 0) return;
 
@@ -208,7 +217,10 @@ public class BmiCalculatorForm : Form
             
             lblResult.Text = $"{_currentBmi:F1}";
             lblResult.ForeColor = GetBmiColor(_currentBmi);
-            lblCategory.Text = GetBmiCategory(_currentBmi);
+            
+            string category = GetBmiCategory(_currentBmi);
+            string emoji = _currentBmi < 18.5 ? "🎈" : (_currentBmi < 25 ? "✅" : (_currentBmi < 30 ? "⚠️" : "🚨"));
+            lblCategory.Text = $"{emoji} {category}";
             lblCategory.ForeColor = GetBmiColor(_currentBmi);
             
             pnlGauge.Invalidate();
@@ -226,10 +238,10 @@ public class BmiCalculatorForm : Form
 
     private Color GetBmiColor(double bmi)
     {
-        if (bmi < 18.5) return Color.FromArgb(52, 152, 219);
-        if (bmi < 25) return Color.FromArgb(173, 196, 50); // Matches the screenshot better for normal
-        if (bmi < 30) return Color.FromArgb(241, 130, 50);
-        return Color.FromArgb(231, 76, 60);
+        if (bmi < 18.5) return Color.FromArgb(52, 152, 219);  // Blue
+        if (bmi < 25) return Color.FromArgb(46, 204, 113);    // Emerald Green
+        if (bmi < 30) return Color.FromArgb(241, 196, 15);    // Sunflower Yellow
+        return Color.FromArgb(231, 76, 60);                  // Alizarin Red
     }
 
     private void PnlGauge_Paint(object sender, PaintEventArgs e)
@@ -239,63 +251,33 @@ public class BmiCalculatorForm : Form
         int w = pnlGauge.Width;
         int h = pnlGauge.Height;
 
-        int segW = w / 4;
-        Color[] colors = { Color.FromArgb(52, 152, 219), Color.FromArgb(173, 196, 50), Color.FromArgb(241, 130, 50), Color.FromArgb(231, 76, 60) };
+        Color[] colors = { 
+            Color.FromArgb(52, 152, 219), 
+            Color.FromArgb(46, 204, 113), 
+            Color.FromArgb(241, 196, 15), 
+            Color.FromArgb(231, 76, 60) 
+        };
 
+        int segW = w / 4;
         for (int i = 0; i < 4; i++)
         {
-            using var brush = new SolidBrush(colors[i]);
             int x = i * segW;
-            int currentW = (i == 3) ? (w - x) : segW;
+            using var brush = new SolidBrush(colors[i]);
             
-            if (i == 0)
+            if (i == 0) // Left rounded
             {
-                var path = new GraphicsPath();
-                path.AddArc(x, 0, h, h, 90, 180);
-                path.AddLine(x + h / 2, 0, x + currentW, 0);
-                path.AddLine(x + currentW, 0, x + currentW, h);
-                path.AddLine(x + currentW, h, x + h / 2, h);
-                path.CloseFigure();
+                using var path = GetRoundedRectPath(new Rectangle(x, 0, segW + 10, h), h / 2);
                 g.FillPath(brush, path);
             }
-            else if (i == 3)
+            else if (i == 3) // Right rounded
             {
-                var path = new GraphicsPath();
-                path.AddLine(x, 0, x + currentW - h / 2, 0);
-                path.AddArc(x + currentW - h, 0, h, h, -90, 180);
-                path.AddLine(x + currentW - h / 2, h, x, h);
-                path.CloseFigure();
+                using var path = GetRoundedRectPath(new Rectangle(x - 10, 0, segW + 10, h), h / 2);
                 g.FillPath(brush, path);
             }
             else
             {
-                g.FillRectangle(brush, x, 0, currentW, h);
+                g.FillRectangle(brush, x - 5, 0, segW + 10, h);
             }
-        }
-
-        string[] labels = { "< 18.5", "18.5 - 25", "25 - 30", "> 30" };
-        using var labelFont = new Font("Segoe UI", 7F, FontStyle.Bold);
-        using var whiteBrush = new SolidBrush(Color.White);
-        var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-        for (int i = 0; i < 4; i++)
-        {
-            int x = i * segW;
-            int currentW = (i == 3) ? (w - x) : segW;
-            g.DrawString(labels[i], labelFont, whiteBrush, new RectangleF(x, 0, currentW, h), sf);
-        }
-        
-        string[] cats = {
-            LanguageService.GetString("НЕДОСТАТОК", "UNDERWEIGHT", "SUBPONDERAL"),
-            LanguageService.GetString("НОРМА", "NORMAL", "NORMAL"),
-            LanguageService.GetString("ИЗБЫТОК", "OVERWEIGHT", "SUPRAPONDERAL"),
-            LanguageService.GetString("ОЖИРЕНИЕ", "OBESE", "OBEZITATE")
-        };
-        using var catBrush = new SolidBrush(Color.Gray);
-        for (int i = 0; i < 4; i++)
-        {
-            int x = i * segW;
-            int currentW = (i == 3) ? (w - x) : segW;
-            g.DrawString(cats[i], labelFont, catBrush, new RectangleF(x, h, currentW, 20), sf);
         }
     }
 
@@ -304,12 +286,18 @@ public class BmiCalculatorForm : Form
         if (_currentBmi <= 0) return;
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
-        double clampedBmi = Math.Max(10, Math.Min(40, _currentBmi));
-        int x = (int)((clampedBmi - 10) / 30.0 * pnlIndicator.Width);
-        x = Math.Max(5, Math.Min(pnlIndicator.Width - 5, x));
         
-        Point[] triangle = { new Point(x, 0), new Point(x - 8, 16), new Point(x + 8, 16) };
+        // Clamp BMI for display
+        double displayBmi = Math.Max(15, Math.Min(35, _currentBmi));
+        float ratio = (float)((displayBmi - 15) / 20.0);
+        int x = (int)(ratio * pnlIndicator.Width);
+        x = Math.Max(10, Math.Min(pnlIndicator.Width - 10, x));
+        
         using var brush = new SolidBrush(GetBmiColor(_currentBmi));
-        g.FillPolygon(brush, triangle);
+        using var pen = new Pen(ThemeService.SurfaceColor, 2);
+        
+        // Draw a nice circle indicator
+        g.FillEllipse(brush, x - 6, 2, 12, 12);
+        g.DrawEllipse(pen, x - 6, 2, 12, 12);
     }
 }

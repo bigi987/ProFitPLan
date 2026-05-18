@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FitPLanPro")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b56197bbae1dcc5284598ab4a7114a5ba7791b2b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b87df3fa82c2ed468de4feaee6b852b762877cea")]
 [assembly: System.Reflection.AssemblyProductAttribute("FitPLanPro")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FitPLanPro")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

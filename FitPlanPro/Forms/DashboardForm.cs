@@ -354,7 +354,7 @@ public class DashboardForm : Form
 
     private void UpdateProgress(int consumed, int burned)
     {
-        int totalTarget = 2000; // Mock target
+        int totalTarget = AuthService.CurrentUser?.TargetCalories ?? 2000;
         int percent = (int)((double)consumed / totalTarget * 100);
         percent = Math.Min(100, Math.Max(0, percent));
         

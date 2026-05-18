@@ -13,6 +13,7 @@ public class RegisterForm : Form
     private TextBox txtConfirmPassword = new();
     private Button btnRegister = new();
     private Button btnCancel = new();
+    private Button btnLanguage = new();
     
     public RegisterForm()
     {
@@ -62,6 +63,14 @@ public class RegisterForm : Form
         btnCancel.Size = new Size(160, 45);
         btnCancel.Click += (s, e) => this.Close();
         
+        btnLanguage.Location = new Point(50, 430);
+        btnLanguage.Size = new Size(330, 40);
+        btnLanguage.BackColor = Color.Transparent;
+        btnLanguage.Click += (s, e) => 
+        {
+            LanguageService.ToggleLanguage();
+        };
+        
         this.Controls.Add(logo);
         this.Controls.Add(lblTitle);
         this.Controls.Add(txtUsername);
@@ -69,6 +78,7 @@ public class RegisterForm : Form
         this.Controls.Add(txtConfirmPassword);
         this.Controls.Add(btnRegister);
         this.Controls.Add(btnCancel);
+        this.Controls.Add(btnLanguage);
     }
     
     private void UpdateTexts()
@@ -79,6 +89,7 @@ public class RegisterForm : Form
         txtConfirmPassword.PlaceholderText = LanguageService.GetString("Подтвердите пароль", "Confirm password", "Confirmați parola");
         btnRegister.Text = LanguageService.GetString("Регистрация", "Register", "Înregistrare");
         btnCancel.Text = LanguageService.GetString("Отмена", "Cancel", "Anulare");
+        btnLanguage.Text = LanguageService.GetNextLanguageLabel();
     }
     
     private void BtnRegister_Click(object sender, EventArgs e)

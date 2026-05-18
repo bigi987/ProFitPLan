@@ -62,6 +62,7 @@ public class WorkoutForm : Form
         dgvWorkouts.MultiSelect = false;
         dgvWorkouts.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         dgvWorkouts.RowTemplate.Height = 45;
+        dgvWorkouts.ReadOnly = true;
         dgvWorkouts.SelectionChanged += DgvWorkouts_SelectionChanged!;
 
         // Right Panel (Edit)
@@ -194,6 +195,8 @@ public class WorkoutForm : Form
         if (dgvWorkouts.Columns.Contains("Id")) dgvWorkouts.Columns["Id"].Visible = false;
         if (dgvWorkouts.Columns.Contains("UserId")) dgvWorkouts.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
+        dgvWorkouts.ClearSelection();
+        ClearInputs();
     }
 
     private void DgvWorkouts_SelectionChanged(object sender, EventArgs e)
@@ -204,6 +207,9 @@ public class WorkoutForm : Form
             txtName.Text = _selectedWorkout.Name;
             numDuration.Value = _selectedWorkout.DurationMinutes;
             numCalories.Value = _selectedWorkout.CaloriesBurned;
+            btnUpdate.Enabled = true;
+            btnDelete.Enabled = true;
+            lblEditTitle.Text = LanguageService.GetString("РЕДАКТИРОВАТЬ ВЫБРАННОЕ", "EDIT SELECTED", "EDITARE SELECTATĂ");
         }
     }
 
@@ -259,5 +265,8 @@ public class WorkoutForm : Form
         numDuration.Value = 0;
         numCalories.Value = 0;
         _selectedWorkout = null;
+        btnUpdate.Enabled = false;
+        btnDelete.Enabled = false;
+        lblEditTitle.Text = LanguageService.GetString("ДОБАВИТЬ НОВОЕ", "ADD NEW", "ADĂUGARE NOUĂ");
     }
 }

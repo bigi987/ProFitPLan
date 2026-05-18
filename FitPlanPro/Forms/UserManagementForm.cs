@@ -39,6 +39,7 @@ public class UserManagementForm : Form
         dgvUsers.MultiSelect = false;
         dgvUsers.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         dgvUsers.RowTemplate.Height = 35;
+        dgvUsers.ReadOnly = true;
         dgvUsers.SelectionChanged += DgvUsers_SelectionChanged!;
         
         Font labelFont = new Font("Segoe UI", 10F, FontStyle.Bold);
@@ -104,6 +105,10 @@ public class UserManagementForm : Form
             dgvUsers.Columns["PasswordHash"].Visible = false;
         if (dgvUsers.Columns.Contains("Id"))
             dgvUsers.Columns["Id"].Visible = false;
+        dgvUsers.ClearSelection();
+        btnUpdateRole.Enabled = false;
+        btnDeleteUser.Enabled = false;
+        _selectedUser = null;
     }
     
     private void DgvUsers_SelectionChanged(object sender, EventArgs e)
@@ -112,6 +117,8 @@ public class UserManagementForm : Form
         {
             _selectedUser = (User)dgvUsers.SelectedRows[0].DataBoundItem;
             cboRole.SelectedItem = _selectedUser.Role;
+            btnUpdateRole.Enabled = true;
+            btnDeleteUser.Enabled = true;
         }
     }
     

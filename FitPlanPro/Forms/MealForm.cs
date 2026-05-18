@@ -74,6 +74,7 @@ public class MealForm : Form
         dgvMeals.MultiSelect = false;
         dgvMeals.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         dgvMeals.RowTemplate.Height = 45;
+        dgvMeals.ReadOnly = true;
         dgvMeals.SelectionChanged += DgvMeals_SelectionChanged!;
 
         // Right Panel (Edit)
@@ -197,6 +198,8 @@ public class MealForm : Form
         if (dgvMeals.Columns.Contains("Id")) dgvMeals.Columns["Id"].Visible = false;
         if (dgvMeals.Columns.Contains("UserId")) dgvMeals.Columns["UserId"].Visible = false;
         UpdateGridHeaders();
+        dgvMeals.ClearSelection();
+        ClearInputs();
     }
     
     private void DgvMeals_SelectionChanged(object sender, EventArgs e)
@@ -209,6 +212,9 @@ public class MealForm : Form
             txtProtein.Text = _selectedMeal.Protein.ToString();
             txtFat.Text = _selectedMeal.Fat.ToString();
             txtCarbs.Text = _selectedMeal.Carbs.ToString();
+            btnUpdate.Enabled = true;
+            btnDelete.Enabled = true;
+            lblEditTitle.Text = LanguageService.GetString("РЕДАКТИРОВАТЬ ВЫБРАННОЕ", "EDIT SELECTED", "EDITARE SELECTATĂ");
         }
     }
     
@@ -242,20 +248,28 @@ public class MealForm : Form
     {
         try
         {
-            if (_selectedMeal != null && ValidateInput())
+            if (_selectedMeal == null)
+            {
+                MessageBox.Show("Сначала выберите строку в таблице!");
+                return;
+            }
+
+            if (ValidateInput())
             {
                 _selectedMeal.Name = txtName.Text;
                 _selectedMeal.Calories = int.Parse(txtCalories.Text);
                 _selectedMeal.Protein = double.Parse(txtProtein.Text);
                 _selectedMeal.Fat = double.Parse(txtFat.Text);
                 _selectedMeal.Carbs = double.Parse(txtCarbs.Text);
+                
                 DataService.UpdateMeal(_selectedMeal.Id, _selectedMeal);
                 LoadMeals();
+                MessageBox.Show("Данные успешно отправлены в MySQL!");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"{LanguageService.GetString("Ошибка", "Error", "Eroare")}: {ex.Message}");
+            MessageBox.Show($"Ошибка при обновлении: {ex.Message}");
         }
     }
     
@@ -270,14 +284,22 @@ public class MealForm : Form
                 ClearInputs();
             }
         }
+        else
+        {
+            MessageBox.Show("Выберите строку для удаления!");
+        }
     }
     
     private bool ValidateInput()
     {
-        if (string.IsNullOrWhiteSpace(txtName.Text)) return false;
+        if (string.IsNullOrWhiteSpace(txtName.Text)) 
+        {
+            MessageBox.Show("Введите название!");
+            return false;
+        }
         if (!int.TryParse(txtCalories.Text, out _) || !double.TryParse(txtProtein.Text, out _) || !double.TryParse(txtFat.Text, out _) || !double.TryParse(txtCarbs.Text, out _))
         {
-            MessageBox.Show(LanguageService.GetString("Введите числовые значения!", "Enter numeric values!", "Introduceți valori numerice!"));
+            MessageBox.Show("Введите числовые значения во все поля!");
             return false;
         }
         return true;
@@ -291,5 +313,8 @@ public class MealForm : Form
         txtFat.Text = "";
         txtCarbs.Text = "";
         _selectedMeal = null;
+        btnUpdate.Enabled = false;
+        btnDelete.Enabled = false;
+        lblEditTitle.Text = LanguageService.GetString("ДОБАВИТЬ НОВОЕ", "ADD NEW", "ADĂUGARE NOUĂ");
     }
 }
